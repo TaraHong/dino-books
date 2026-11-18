@@ -4,7 +4,7 @@ on:
     branches: [main]
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 concurrency:
@@ -18,6 +18,22 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Make read-aloud audio for any page that has none (kept in the repo)
+        continue-on-error: true
+        run: |
+          n=$(node tools/tts-lines.js | python3 tools/tts.py --check)
+          echo "$n pages need audio"
+          if [ "$n" != 0 ]; then
+            python3 -m venv /tmp/v && . /tmp/v/bin/activate
+            pip install -q supertonic
+            command -v ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
+            node tools/tts-lines.js | python tools/tts.py
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add audio
+            git commit -m "Machine-read audio for new or changed pages"
+            git push || true
+          fi
       - name: List recorded audio and stamp the offline cache version
         run: |
           mkdir -p audio
