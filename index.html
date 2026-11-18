@@ -17,7 +17,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* layout: jungle-green shelf of six covers -> one-page reader; picture on top, big text below; pages turn on the left spine */
+  /* layout: jungle-green shelf of covers -> reader. Portrait: one page, picture on top, big text below, turns on the left spine.
+     Landscape: an open book, picture on the left page, text on the right page, the leaf turns over the middle. */
   --jungle:#0f4a43; --jungle-deep:#0a332f; --leaf:#bfe86b;
   --paper:#fffaf0; --ink:#25323a; --pop:#ff3d8b; --sun:#ffc93c;
   --font-display:'Jua','Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;
@@ -76,6 +77,31 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
 @keyframes pout{to{transform:rotateY(-96deg)}}
 @keyframes pin{from{transform:rotateY(-96deg)}}
 @keyframes sh{to{opacity:1}}
+/* landscape: the book lies open. Left page = picture, right page = words, and only the right-hand leaf turns over the middle. */
+#reader.wide{display:grid;grid-template-columns:auto 1fr auto auto auto 1fr auto;grid-template-rows:minmax(0,1fr) auto;gap:8px 10px;align-items:center;padding-top:max(8px,env(safe-area-inset-top))}
+#reader.wide .bar,#reader.wide .ctl{display:contents}
+#reader.wide .stage{grid-area:1/1/2/-1;align-self:stretch}
+#reader.wide #home{grid-area:2/1}#reader.wide #pg{grid-area:2/2;justify-self:center}
+#reader.wide #prev{grid-area:2/3}#reader.wide #read{grid-area:2/4}#reader.wide #next{grid-area:2/5}#reader.wide #auto{grid-area:2/7}
+.wide .nav{width:52px;height:52px;box-shadow:0 4px 0 #c9951a}.wide .nav svg{width:28px;height:28px}
+.wide .read{height:52px;font-size:19px;box-shadow:0 4px 0 #b81f5c}
+.wide .book::before,.wide .page{border-radius:14px}
+.wide .page{flex-direction:row}
+.wide .page::before{left:50%;width:calc(var(--u)*12);transform:translateX(-50%);
+  background:linear-gradient(90deg,transparent,rgba(60,40,10,.16) 35%,rgba(60,40,10,.38) 50%,rgba(60,40,10,.16) 65%,transparent)}
+.wide .scene{flex:0 0 50%;aspect-ratio:auto;height:100%}
+.wide .story{padding:calc(var(--u)*6) calc(var(--u)*9) calc(var(--u)*10) calc(var(--u)*12)}
+.wide .txt{font-size:calc(var(--u)*9)}
+.wide .txt.long{font-size:calc(var(--u)*7.2)}
+.wide .num{left:50%}
+.wide .cover{position:relative;padding-left:calc(50% + var(--u)*10)}
+.wide .cover svg{position:absolute;left:0;top:0;width:50%;height:100%;padding:calc(var(--u)*6) calc(var(--u)*7)}
+.hl{clip-path:inset(0 50% 0 0)}.hr{clip-path:inset(0 0 0 50%)}
+.leaf{position:absolute;inset:0;z-index:5;pointer-events:none;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;transform-origin:50% 50%}
+.leaf .page{transform-origin:50% 50%}.leaf .back{transform:rotateY(180deg)}
+.leaf.fw{animation:lfw .65s ease-in-out forwards}.leaf.bw{animation:lbw .65s ease-in-out forwards}
+@keyframes lfw{to{transform:rotateY(-180deg)}}
+@keyframes lbw{to{transform:rotateY(180deg)}}
 
 .scene{position:relative;flex:0 0 auto;aspect-ratio:4/3;overflow:hidden}
 .scene svg{display:block;width:100%;height:100%}
@@ -740,19 +766,26 @@ function readPage(delay){const pg=pageNow;if(!pg)return;const sp=[...pg.querySel
 function chrome(){$('pg').textContent=idx===0?'표지':idx===LAST?'끝':idx+' / 10';$('prev').disabled=idx===0;$('next').disabled=idx===LAST}
 let flipId=0;
 /* after a turn: exactly one page stays, the newest one */
-function settle(nu){busy=false;[...bookEl.children].forEach(p=>{if(p!==nu)p.remove()});nu.classList.remove('in')}
+function settle(nu){busy=false;[...bookEl.children].forEach(p=>{if(p!==nu)p.remove()});nu.classList.remove('in','hl','hr')}
 function show(i,dir){if(busy||i<0||i>LAST)return;const old=pageNow&&pageNow.parentNode===bookEl?pageNow:null,nu=pageEl(cur,i),id=++flipId;idx=i;pageNow=nu;chrome();
   const still=matchMedia('(prefers-reduced-motion:reduce)').matches;
   if(!old||!dir||still){bookEl.innerHTML='';bookEl.appendChild(nu);busy=false}
   else{busy=true;play('flip');
     /* only the newest turn may tidy up; an older turn's timer must never remove a newer page */
-    const done=()=>{if(id===flipId)settle(nu)},mover=dir>0?old:nu;
-    if(dir>0){bookEl.insertBefore(nu,old);old.classList.add('out')}else{bookEl.appendChild(nu);nu.classList.add('in')}
+    const done=()=>{if(id===flipId)settle(nu)};let mover=dir>0?old:nu;
+    if(wide){/* open book: the new spread lies underneath, the old one keeps the half that stays put, and one leaf (old page on the front, new page on the back) swings over the middle */
+      const a=dir>0?'hr':'hl',z=dir>0?'hl':'hr',f=old.cloneNode(true),k=nu.cloneNode(true);mover=document.createElement('div');mover.className='leaf '+(dir>0?'fw':'bw');
+      f.className='page '+a;k.className='page back '+z;mover.append(f,k);[...bookEl.children].forEach(p=>{if(p!==old)p.remove()});
+      bookEl.insertBefore(nu,old);old.classList.remove('in','out','hl','hr');old.classList.add(z);bookEl.appendChild(mover)}
+    else if(dir>0){bookEl.insertBefore(nu,old);old.classList.add('out')}else{bookEl.appendChild(nu);nu.classList.add('in')}
     mover.addEventListener('animationend',e=>{if(e.target===mover)done()});
     setTimeout(done,900)}
   if(auto)readPage(dir?500:0);else speak('','ko-KR')}
-function fit(){const s=$('stage').getBoundingClientRect(),w=Math.max(180,Math.min(s.width-12,(s.height-14)/1.25));
-  bookEl.style.width=w+'px';bookEl.style.height=w*1.25+'px';bookEl.style.setProperty('--u',w/100+'px')}
+let wide=false;
+/* portrait: one 4:5 page. landscape: an open 8:3 book, two 4:3 pages side by side */
+function fit(){wide=innerWidth>innerHeight*1.15;$('reader').classList.toggle('wide',wide);
+  const s=$('stage').getBoundingClientRect(),r=wide?.375:1.25,w=Math.max(180,Math.min(s.width-12,(s.height-14)/r));
+  bookEl.style.width=w+'px';bookEl.style.height=w*r+'px';bookEl.style.setProperty('--u',w/(wide?200:100)+'px')}
 function openBook(b){busy=false;flipId++;pageNow=null;bookEl.innerHTML='';cur=b;$('shelf').hidden=true;$('reader').hidden=false;fit();play('hello');show(0,0)}
 function goHome(){busy=false;flipId++;pageNow=null;speak('','ko-KR');$('reader').hidden=true;$('shelf').hidden=false;bookEl.innerHTML=''}
 function setAuto(v){auto=v;$('auto').setAttribute('aria-pressed',v);$('autoT').textContent=v?'자동 읽기 켬':'자동 읽기 끔';try{localStorage.setItem('dino-auto',v?'1':'0')}catch(e){}}
