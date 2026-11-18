@@ -116,6 +116,33 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
 /* tappable art */
 .tapg{cursor:pointer;transform-box:fill-box;transform-origin:50% 100%}
 .tapg.hit{animation:hit .6s ease-out}
+.tapg.oc,.tapg.a-flip{transform-origin:50% 50%}
+.a-jump{animation:hit .6s ease-out}.a-wiggle{animation:wiggle .6s ease-in-out}.a-stomp{animation:stompy .55s ease-out}.a-flip{animation:flip .75s ease-in-out}
+.a-spin{animation:spin .9s ease-in-out}.a-sway{animation:sway .9s ease-in-out}.a-roll{animation:roll .7s ease-in-out}.a-wobble{animation:wobble .55s ease-in-out}
+.a-bite{animation:bite .5s ease-out}.a-leap{animation:leap .8s ease-in-out}.a-flyaway{animation:flyaway 1.1s ease-in-out}.a-drift{animation:drift 1.1s ease-in-out}
+.a-squish{animation:squish .5s ease-out}.a-bounce{animation:bounce .7s ease-out}.a-beat{animation:beat .7s ease-out}.a-erupt{animation:erupt .7s ease-out}
+.a-twinkle{animation:twinkle .7s ease-in-out}.a-wave{animation:wave 1s ease-in-out}.a-glow{animation:glow .8s ease-in-out}.a-flow{animation:flow .9s linear}
+@keyframes wiggle{20%{transform:rotate(-9deg)}40%{transform:rotate(8deg)}60%{transform:rotate(-6deg)}80%{transform:rotate(4deg)}}
+@keyframes stompy{30%{transform:translateY(-7%)}55%{transform:scale(1.08,.84)}75%{transform:translateY(-3%)}}
+@keyframes flip{50%{transform:translateY(-14%) rotate(180deg)}100%{transform:rotate(360deg)}}
+@keyframes spin{50%{transform:rotate(180deg) scale(1.25)}100%{transform:rotate(360deg)}}
+@keyframes sway{25%{transform:rotate(8deg)}50%{transform:rotate(-7deg)}75%{transform:rotate(4deg)}}
+@keyframes roll{50%{transform:translateX(18px) rotate(22deg)}}
+@keyframes wobble{15%{transform:rotate(-13deg)}35%{transform:rotate(12deg)}55%{transform:rotate(-9deg)}75%{transform:rotate(6deg)}}
+@keyframes bite{40%{transform:scale(.65) rotate(-8deg)}}
+@keyframes leap{40%{transform:translateY(-48px) rotate(-28deg)}80%{transform:translateY(4px) rotate(12deg)}}
+@keyframes flyaway{50%{transform:translate(38px,-46px) rotate(14deg)}}
+@keyframes drift{50%{transform:translateX(30px)}}
+@keyframes squish{40%{transform:scale(1.15,.55)}}
+@keyframes bounce{25%{transform:translateY(-24px)}50%{transform:none}72%{transform:translateY(-11px)}}
+@keyframes beat{20%{transform:scale(1.45)}40%{transform:scale(1)}60%{transform:scale(1.3)}}
+@keyframes erupt{15%{transform:scale(1.04,1.1)}35%{transform:translateX(-4px) scale(1.02,1.06)}55%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
+@keyframes twinkle{50%{transform:scale(2) rotate(180deg)}100%{transform:rotate(360deg)}}
+@keyframes wave{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+@keyframes glow{50%{transform:scale(1.14)}}
+@keyframes flow{25%{transform:translateY(6px)}50%{transform:none}75%{transform:translateY(6px)}}
+.bit{opacity:0;transform-box:fill-box;transform-origin:50% 50%;animation:bit .85s ease-out forwards}
+@keyframes bit{0%{opacity:1;transform:scale(.5)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.3) rotate(160deg)}}
 .fx.tapg{transform-origin:50% 50%;animation:pulse 1.6s ease-in-out infinite}
 .fx.tapg.hit{animation:boom .5s ease-out}
 .hit:not(.tapg){animation:boom .45s ease-out}
@@ -289,46 +316,66 @@ ART.par={w:250,h:188,draw(b,o){const {c,d,l,p}=b;
   <path d="M152 112 q10 16 4 32" fill="none" stroke="${d}" stroke-width="8" stroke-linecap="round"/>`}};
 
 const tapg=(cls,attrs,inner)=>`<g class="tapg ${cls}" data-tap ${attrs}>${inner}</g>`;
+/* a tappable picture: an action, a sound effect and a little burst of bits; no speech */
+const pic=(act,snd,bit,inner,oc)=>tapg(oc?'oc':'',`data-act="${act}" data-snd="${snd}" data-bit="${bit}"`,inner);
+const at=(x,y,inner)=>`<g transform="translate(${x} ${y})">${inner}</g>`;
 function dino(b,x,y,sc,o){const D=ART[b.id];
-  return `<g transform="translate(${x} ${y}) scale(${o.f?-sc:sc} ${sc}) translate(${-D.w/2} ${-D.h})">${tapg('dino',`data-snd="${b.voice}" data-en="${b.en}"`,D.draw(b,o))}</g>`}
+  return `<g transform="translate(${x} ${y}) scale(${o.f?-sc:sc} ${sc}) translate(${-D.w/2} ${-D.h})">${tapg('dino',`data-act="dino" data-snd="${b.voice}" data-bit="dust"`,D.draw(b,o))}</g>`}
 
+/* name: [action, sound, bits, drawing, spins around its centre?] */
 const PROP={
-tree:['나무','pop',()=>{let s='<path d="M-6 0 Q-12 -60 4 -110 L14 -108 Q2 -60 8 0Z" fill="#9c6b3f"/>';
+tree:['sway','rustle','leaf',()=>{let s='<path d="M-6 0 Q-12 -60 4 -110 L14 -108 Q2 -60 8 0Z" fill="#9c6b3f"/>';
   [-165,-128,-92,-55,-15,22,158].forEach((a,i)=>s+=`<ellipse cx="34" cy="0" rx="36" ry="11" transform="translate(8 -110) rotate(${a})" fill="${i%2?'#2f8f4c':'#3fa55a'}"/>`);return s}],
-fern:['풀','swish',()=>[-155,-125,-92,-58,-25].map((a,i)=>`<ellipse cx="24" cy="0" rx="27" ry="8" transform="rotate(${a})" fill="${i%2?'#2f8f4c':'#49b866'}"/>`).join('')],
-rock:['바위','clank',()=>'<path d="M-34 0 Q-40 -30 -10 -36 Q20 -44 34 -18 Q42 0 34 0Z" fill="#9aa3ad"/><path d="M-22 -18 Q-12 -30 4 -30" fill="none" stroke="#c3cad1" stroke-width="5" stroke-linecap="round"/>'],
-egg:['알','crack',()=>`<ellipse cx="0" cy="-20" rx="16" ry="21" fill="${BONE}"/><circle cx="-5" cy="-26" r="3" fill="#e9c98a"/><circle cx="6" cy="-14" r="4" fill="#e9c98a"/>`],
-shell:['알','crack',()=>`<path d="M-20 -14 l7 7 l6 -8 l7 8 l7 -8 l6 8 l7 -7 Q22 6 0 6 Q-22 6 -20 -14Z" fill="${BONE}" stroke="#e2cf9f" stroke-width="2" stroke-linejoin="round"/>`],
-meat:['고기','munch',()=>'<path d="M-30 4 L8 -8" stroke="#fff" stroke-width="8" stroke-linecap="round"/><circle cx="-32" cy="0" r="6" fill="#fff"/><circle cx="-30" cy="9" r="6" fill="#fff"/><ellipse cx="10" cy="-10" rx="24" ry="17" transform="rotate(-18 10 -10)" fill="#c8553d"/><ellipse cx="14" cy="-13" rx="12" ry="7" transform="rotate(-18 14 -13)" fill="#e58a6f"/>'],
-fish:['물고기','splash',()=>`<path d="M-16 0 l-16 -11 v22z" fill="#ff8a3d"/><ellipse cx="0" cy="0" rx="20" ry="11" fill="#ffa94d"/><circle cx="10" cy="-3" r="3" fill="#fff"/><circle cx="11" cy="-3" r="1.6" fill="${INK}"/>`],
-fly:['나비','sparkle',()=>`<g class="flutter"><ellipse cx="-9" cy="-4" rx="10" ry="13" transform="rotate(-25 -9 -4)" fill="#ff8fc7"/><ellipse cx="9" cy="-4" rx="10" ry="13" transform="rotate(25 9 -4)" fill="#ffd23f"/><rect x="-2" y="-12" width="4" height="20" rx="2" fill="${INK}"/></g>`],
-flower:['꽃','sparkle',()=>'<path d="M0 0 V-22" stroke="#2f8f4c" stroke-width="4" stroke-linecap="round"/>'+[0,72,144,216,288].map(a=>`<circle cx="0" cy="-8" r="6.5" transform="translate(0 -26) rotate(${a})" fill="#ff7eb6"/>`).join('')+'<circle cx="0" cy="-26" r="5" fill="#ffd23f"/>'],
-cloud:['구름','pop',()=>'<circle cx="-22" cy="0" r="16" fill="#fff"/><circle cx="0" cy="-10" r="22" fill="#fff"/><circle cx="24" cy="0" r="17" fill="#fff"/><rect x="-24" y="0" width="50" height="16" rx="8" fill="#fff"/>'],
-mud:['진흙','splash',()=>'<ellipse cx="0" cy="0" rx="62" ry="13" fill="#8a5a3c"/><circle cx="-50" cy="-12" r="5" fill="#8a5a3c"/><circle cx="54" cy="-16" r="4" fill="#8a5a3c"/><circle cx="66" cy="-4" r="3" fill="#8a5a3c"/>'],
-berry:['열매','pop',()=>'<circle cx="0" cy="-9" r="9" fill="#e5383b"/><circle cx="-3" cy="-12" r="2.5" fill="#ff9a9a"/><path d="M0 -18 q6 -8 12 -4 q-4 6 -12 4z" fill="#3fa55a"/>'],
-heart:['사랑해','sparkle',()=>'<path d="M0 10 C-26 -8 -14 -28 0 -14 C14 -28 26 -8 0 10Z" fill="#ff3d8b"/>']
+fern:['sway','rustle','leaf',()=>[-155,-125,-92,-58,-25].map((a,i)=>`<ellipse cx="24" cy="0" rx="27" ry="8" transform="rotate(${a})" fill="${i%2?'#2f8f4c':'#49b866'}"/>`).join('')],
+rock:['roll','clank','dust',()=>'<path d="M-34 0 Q-40 -30 -10 -36 Q20 -44 34 -18 Q42 0 34 0Z" fill="#9aa3ad"/><path d="M-22 -18 Q-12 -30 4 -30" fill="none" stroke="#c3cad1" stroke-width="5" stroke-linecap="round"/>'],
+egg:['wobble','crack','star',()=>`<ellipse cx="0" cy="-20" rx="16" ry="21" fill="${BONE}"/><circle cx="-5" cy="-26" r="3" fill="#e9c98a"/><circle cx="6" cy="-14" r="4" fill="#e9c98a"/>`],
+shell:['wobble','crack','star',()=>`<path d="M-20 -14 l7 7 l6 -8 l7 8 l7 -8 l6 8 l7 -7 Q22 6 0 6 Q-22 6 -20 -14Z" fill="${BONE}" stroke="#e2cf9f" stroke-width="2" stroke-linejoin="round"/>`],
+meat:['bite','munch','crumb',()=>'<path d="M-30 4 L8 -8" stroke="#fff" stroke-width="8" stroke-linecap="round"/><circle cx="-32" cy="0" r="6" fill="#fff"/><circle cx="-30" cy="9" r="6" fill="#fff"/><ellipse cx="10" cy="-10" rx="24" ry="17" transform="rotate(-18 10 -10)" fill="#c8553d"/><ellipse cx="14" cy="-13" rx="12" ry="7" transform="rotate(-18 14 -13)" fill="#e58a6f"/>'],
+fish:['leap','splash','drop',()=>`<path d="M-16 0 l-16 -11 v22z" fill="#ff8a3d"/><ellipse cx="0" cy="0" rx="20" ry="11" fill="#ffa94d"/><circle cx="10" cy="-3" r="3" fill="#fff"/><circle cx="11" cy="-3" r="1.6" fill="${INK}"/>`],
+fly:['flyaway','sparkle','star',()=>`<g class="flutter"><ellipse cx="-9" cy="-4" rx="10" ry="13" transform="rotate(-25 -9 -4)" fill="#ff8fc7"/><ellipse cx="9" cy="-4" rx="10" ry="13" transform="rotate(25 9 -4)" fill="#ffd23f"/><rect x="-2" y="-12" width="4" height="20" rx="2" fill="${INK}"/></g>`],
+bird:['flyaway','squawk','star',()=>`<path d="M-14 0 q7 -10 14 0 q7 -10 14 0" fill="none" stroke="${INK}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="-18" y="-14" width="36" height="20" fill="transparent"/>`],
+flower:['sway','sparkle','petal',()=>'<path d="M0 0 V-22" stroke="#2f8f4c" stroke-width="4" stroke-linecap="round"/>'+[0,72,144,216,288].map(a=>`<circle cx="0" cy="-8" r="6.5" transform="translate(0 -26) rotate(${a})" fill="#ff7eb6"/>`).join('')+'<circle cx="0" cy="-26" r="5" fill="#ffd23f"/>'],
+cloud:['drift','whoosh','rain',()=>'<circle cx="-22" cy="0" r="16" fill="#fff"/><circle cx="0" cy="-10" r="22" fill="#fff"/><circle cx="24" cy="0" r="17" fill="#fff"/><rect x="-24" y="0" width="50" height="16" rx="8" fill="#fff"/>'],
+mud:['squish','splash','mud',()=>'<ellipse cx="0" cy="0" rx="62" ry="13" fill="#8a5a3c"/><circle cx="-50" cy="-12" r="5" fill="#8a5a3c"/><circle cx="54" cy="-16" r="4" fill="#8a5a3c"/><circle cx="66" cy="-4" r="3" fill="#8a5a3c"/>'],
+berry:['bounce','pop','star',()=>'<circle cx="0" cy="-9" r="9" fill="#e5383b"/><circle cx="-3" cy="-12" r="2.5" fill="#ff9a9a"/><path d="M0 -18 q6 -8 12 -4 q-4 6 -12 4z" fill="#3fa55a"/>'],
+bone:['wobble','count','star',()=>`<path d="M-30 0 Q0 -10 30 0" fill="none" stroke="${BONE}" stroke-width="6" stroke-linecap="round"/>`+[-20,-7,7,20].map(x=>`<path d="M${x} -3 q-3 -18 6 -26" fill="none" stroke="${BONE}" stroke-width="5" stroke-linecap="round"/>`).join('')],
+conch:['wobble','pop','star',()=>'<path d="M-14 0 Q-18 -18 0 -22 Q18 -18 14 0Z" fill="#ffb3c7"/><path d="M0 -20 V-2 M-8 -17 L-5 -2 M8 -17 L5 -2" stroke="#ff7ea3" stroke-width="2.5" stroke-linecap="round"/>'],
+heart:['beat','heartbeat','heart',()=>'<path d="M0 10 C-26 -8 -14 -28 0 -14 C14 -28 26 -8 0 10Z" fill="#ff3d8b"/>',1]
 };
-function prop(k,x,y,s){const [say,snd,fn]=PROP[k];
-  return `<g transform="translate(${x} ${y}) scale(${s})">${tapg('',`data-snd="${snd}" data-say="${say}"`,fn())}</g>`}
-const thing=(say,snd,inner)=>tapg('',`data-snd="${snd}" data-say="${say}"`,inner);
+function prop(k,x,y,s){const [act,snd,bit,fn,oc]=PROP[k];return `<g transform="translate(${x} ${y}) scale(${s})">${pic(act,snd,bit,fn(),oc)}</g>`}
 
-const SKY={day:['#7fcdff','#e6f7ff'],jungle:['#9fe3c4','#effff5'],volcano:['#ffa95c','#ffe6bf'],night:['#16234f','#40539a'],lake:['#7fcdff','#e6f7ff'],sky:['#5cbaff','#d9f1ff'],rain:['#93a8bf','#d7e0ea'],rainbow:['#7fcdff','#eefaff']};
+const SKY={day:['#7fcdff','#e6f7ff'],jungle:['#9fe3c4','#effff5'],volcano:['#ffa95c','#ffe6bf'],night:['#16234f','#40539a'],lake:['#7fcdff','#e6f7ff'],sky:['#5cbaff','#d9f1ff'],dusk:['#ff9a7b','#ffe3ad'],rain:['#93a8bf','#d7e0ea'],rainbow:['#7fcdff','#eefaff'],
+  mount:['#9cc4ff','#f0f6ff'],sunset:['#ff8a6b','#ffdc8f'],beach:['#62c2ff','#e2f5ff'],falls:['#8ad4ff','#eaf8ff'],desert:['#ffd08a','#fff4dc']};
 function bg(k){const [a,b]=SKY[k];
   let s=`<defs><linearGradient id="sk-${k}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="400" height="300" fill="url(#sk-${k})"/>`;
-  const sun=()=>`<g transform="translate(346 62)">${thing('해','sparkle','<circle r="40" fill="#ffe27a" opacity=".5"/><circle r="27" fill="#ffc93c"/>')}</g>`;
+  const sun=(x=346,y=62)=>at(x,y,pic('spin','sparkle','star','<circle r="40" fill="#ffe27a" opacity=".5"/><g stroke="#ffc93c" stroke-width="5" stroke-linecap="round">'+[0,45,90,135,180,225,270,315].map(q=>`<path d="M0 -33 V-42" transform="rotate(${q})"/>`).join('')+'</g><circle r="27" fill="#ffc93c"/>',1));
   const ground=(c,c2)=>`<path d="M0 222 Q110 192 220 216 T400 208 V300 H0Z" fill="${c2}"/><path d="M0 240 Q200 212 400 240 V300 H0Z" fill="${c}"/>`;
-  if(k==='day'||k==='lake'||k==='rainbow')s+=sun();
-  if(k==='rainbow'){let r='';['#ff5d5d','#ffa94d','#ffe066','#69db7c','#4dabf7','#9775fa'].forEach((c,i)=>r+=`<path d="M${50+i*10} 240 A${150-i*10} ${150-i*10} 0 0 1 ${350-i*10} 240" fill="none" stroke="${c}" stroke-width="10.5"/>`);s+=thing('무지개','sparkle',r)}
+  const ripples='<path d="M40 284 q12 -7 24 0 M180 288 q12 -7 24 0 M310 282 q12 -7 24 0" fill="none" stroke="#bfe6ff" stroke-width="4" stroke-linecap="round"/>';
+  if(k==='day'||k==='lake'||k==='rainbow'||k==='beach'||k==='desert')s+=sun();
+  if(k==='rainbow'){let r='';['#ff5d5d','#ffa94d','#ffe066','#69db7c','#4dabf7','#9775fa'].forEach((c,i)=>r+=`<path d="M${50+i*10} 240 A${150-i*10} ${150-i*10} 0 0 1 ${350-i*10} 240" fill="none" stroke="${c}" stroke-width="10.5"/>`);s+=pic('glow','chime','star',r)}
   if(k==='day'||k==='rainbow')s+=prop('cloud',70,150,.55)+ground('#7ccb6a','#a5dc8c');
-  if(k==='lake')s+=ground('#7ccb6a','#a5dc8c')+thing('물','splash','<path d="M215 262 Q300 228 400 240 V300 H190Z" fill="#4fb3e8"/><path d="M270 262 q12 -7 24 0 M320 276 q12 -7 24 0" fill="none" stroke="#c9ecff" stroke-width="4" stroke-linecap="round"/>');
-  if(k==='jungle'){[[30,.9],[110,1.15],[300,1.05],[375,.95]].forEach(([x,z],i)=>s+=`<g transform="translate(${x} 232) scale(${z})" opacity=".55"><path d="M-5 0 V-120 h10 V0Z" fill="#2c7a54"/>${[-160,-125,-90,-55,-20].map(q=>`<ellipse cx="30" rx="32" ry="10" transform="translate(0 -120) rotate(${q})" fill="#2c8a5a"/>`).join('')}</g>`);s+=ground('#5fb760','#3f9c58')}
-  if(k==='volcano')s+=thing('화산','roar','<circle cx="300" cy="78" r="16" fill="#fff" opacity=".7"/><circle cx="318" cy="52" r="12" fill="#fff" opacity=".6"/><path d="M205 232 L276 104 L318 104 L392 232Z" fill="#8a5a44"/><path d="M276 104 L318 104 L326 124 Q312 114 304 132 Q296 112 284 130 Q280 116 270 118Z" fill="#ff5a36"/>')+ground('#d4a96a','#c2925a');
-  if(k==='night'){s+=`<g transform="translate(340 62)">${thing('달','sparkle','<circle r="26" fill="#ffe9a3"/><circle cx="10" cy="-8" r="22" fill="#16234f" opacity=".0"/><circle cx="-8" cy="-6" r="4" fill="#f2d680"/><circle cx="7" cy="8" r="6" fill="#f2d680"/>')}</g>`;
-    [[60,120],[130,96],[230,60],[280,120],[190,130],[40,180]].forEach(([x,y])=>s+=`<g transform="translate(${x} ${y})">${thing('별','sparkle','<path d="M0 -9 L2.6 -2.8 L9 -2.8 L4 1.6 L5.8 8 L0 4.2 L-5.8 8 L-4 1.6 L-9 -2.8 L-2.6 -2.8Z" fill="#fff3a8"/>')}</g>`);
+  if(k==='lake')s+=prop('cloud',90,140,.5)+ground('#7ccb6a','#a5dc8c')+pic('wave','splash','drop','<path d="M215 262 Q300 228 400 240 V300 H190Z" fill="#4fb3e8"/><path d="M270 262 q12 -7 24 0 M320 276 q12 -7 24 0" fill="none" stroke="#c9ecff" stroke-width="4" stroke-linecap="round"/>');
+  if(k==='jungle'){[[30,.9],[110,1.15],[300,1.05],[375,.95]].forEach(([x,z])=>s+=`<g transform="translate(${x} 232) scale(${z})" opacity=".55">${pic('sway','rustle','leaf',`<path d="M-5 0 V-120 h10 V0Z" fill="#2c7a54"/>${[-160,-125,-90,-55,-20].map(q=>`<ellipse cx="30" rx="32" ry="10" transform="translate(0 -120) rotate(${q})" fill="#2c8a5a"/>`).join('')}`)}</g>`);s+=ground('#5fb760','#3f9c58')}
+  if(k==='volcano')s+=at(305,62,pic('drift','whoosh','dust','<circle cx="-4" cy="16" r="16" fill="#fff" opacity=".75"/><circle cx="14" cy="-10" r="12" fill="#fff" opacity=".65"/><circle cx="2" cy="-30" r="8" fill="#fff" opacity=".5"/>'))
+    +pic('erupt','rumble','lava','<path d="M205 232 L276 104 L318 104 L392 232Z" fill="#8a5a44"/><path d="M276 104 L318 104 L326 124 Q312 114 304 132 Q296 112 284 130 Q280 116 270 118Z" fill="#ff5a36"/>')+ground('#d4a96a','#c2925a');
+  if(k==='night'){s+=at(340,62,pic('glow','chime','star','<circle r="26" fill="#ffe9a3"/><circle cx="-8" cy="-6" r="4" fill="#f2d680"/><circle cx="7" cy="8" r="6" fill="#f2d680"/>',1));
+    [[60,120],[130,96],[230,60],[280,120],[190,130],[40,180]].forEach(([x,y])=>s+=at(x,y,pic('twinkle','ding','star','<circle r="13" fill="transparent"/><path d="M0 -9 L2.6 -2.8 L9 -2.8 L4 1.6 L5.8 8 L0 4.2 L-5.8 8 L-4 1.6 L-9 -2.8 L-2.6 -2.8Z" fill="#fff3a8"/>',1)));
     s+=ground('#3f7f62','#2f6a55')}
-  if(k==='sky')s+=prop('cloud',70,150,.7)+prop('cloud',340,95,.9)+prop('cloud',215,235,.5)+thing('바다','splash','<path d="M0 266 Q50 254 100 266 T200 266 T300 266 T400 266 V300 H0Z" fill="#2f9be0"/><path d="M40 284 q12 -7 24 0 M180 288 q12 -7 24 0 M310 282 q12 -7 24 0" fill="none" stroke="#bfe6ff" stroke-width="4" stroke-linecap="round"/>');
+  if(k==='sky'||k==='dusk'){if(k==='dusk')s+=at(325,250,pic('glow','chime','star','<circle r="50" fill="#ffe27a" opacity=".45"/><circle r="34" fill="#ffb347"/>',1));
+    s+=prop('cloud',70,150,.7)+prop('cloud',340,95,.9)+prop('cloud',215,235,.5)+pic('wave','splash','drop','<path d="M0 266 Q50 254 100 266 T200 266 T300 266 T400 266 V300 H0Z" fill="#2f9be0"/>'+ripples)}
   if(k==='rain'){let r='';for(let i=0;i<34;i++){const x=(i*53)%420,y=(i*97)%300-40;r+=`<path d="M${x} ${y} l-4 14" stroke="#eaf4ff" stroke-width="3" stroke-linecap="round"/>`}
-    s+=ground('#6fbf66','#93cf85')+`<g transform="translate(90 60)">${thing('구름','rain','<circle cx="-24" r="18" fill="#6f8296"/><circle cy="-10" r="24" fill="#6f8296"/><circle cx="26" r="19" fill="#6f8296"/>')}</g><g transform="translate(300 80)">${thing('구름','rain','<circle cx="-24" r="18" fill="#7f92a6"/><circle cy="-10" r="24" fill="#7f92a6"/><circle cx="26" r="19" fill="#7f92a6"/>')}</g><g class="rain" pointer-events="none">${r}</g>`}
+    const rc=c=>pic('wobble','thunder','rain',`<circle cx="-24" r="18" fill="${c}"/><circle cy="-10" r="24" fill="${c}"/><circle cx="26" r="19" fill="${c}"/>`);
+    s+=ground('#6fbf66','#93cf85')+at(90,60,rc('#6f8296'))+at(300,80,rc('#7f92a6'))+`<g class="rain" pointer-events="none">${r}</g>`}
+  if(k==='mount'){[[85,120,'#a9b0dc'],[330,105,'#9aa2d2'],[210,78,'#8790c6']].forEach(([x,t,c])=>{const w=(236-t)*.62;
+      s+=pic('wobble','rumble','dust',`<path d="M${x-w} 236 L${x} ${t} L${x+w} 236Z" fill="${c}"/><path d="M${x-20} ${t+32} L${x} ${t} L${x+20} ${t+32} l-10 -8 l-10 9 l-10 -9Z" fill="#fff"/>`)});
+    s+=prop('cloud',300,60,.55)+ground('#7ccb6a','#a5dc8c')}
+  if(k==='sunset')s+=at(200,212,pic('glow','chime','star','<circle r="62" fill="#ffe27a" opacity=".45"/><circle r="44" fill="#ffb238"/>',1))+prop('bird',250,76,.8)+prop('bird',288,60,.6)+ground('#8fae4e','#c58a4c');
+  if(k==='beach')s+=prop('cloud',80,140,.5)+pic('wave','splash','drop','<path d="M0 198 Q50 190 100 198 T200 198 T300 198 T400 198 V250 H0Z" fill="#35a3e3"/><path d="M30 214 q12 -7 24 0 M150 222 q12 -7 24 0 M260 212 q12 -7 24 0 M340 224 q12 -7 24 0" fill="none" stroke="#c9ecff" stroke-width="4" stroke-linecap="round"/>')
+    +'<path d="M0 236 Q200 218 400 236 V300 H0Z" fill="#f3dca4"/><path d="M0 262 Q200 250 400 266 V300 H0Z" fill="#ecd092"/>'+prop('conch',382,290,.9);
+  if(k==='falls')s+=sun(255,58)+ground('#7ccb6a','#a5dc8c')+'<path d="M298 236 V78 Q326 58 400 62 V236Z" fill="#8f93a3"/><path d="M298 120 h22 M372 150 h28 M300 190 h18" stroke="#787c8c" stroke-width="5" stroke-linecap="round"/>'
+    +pic('flow','waterfall','drop','<rect x="326" y="66" width="42" height="172" rx="8" fill="#7fd0f5"/><path d="M336 80 V226 M348 74 V232 M359 84 V224" stroke="#e6f7ff" stroke-width="4" stroke-linecap="round" stroke-dasharray="14 12"/>')
+    +pic('wave','splash','drop','<ellipse cx="346" cy="244" rx="62" ry="14" fill="#4fb3e8"/><path d="M312 244 q10 -6 20 0 M356 248 q10 -6 20 0" fill="none" stroke="#e6f7ff" stroke-width="4" stroke-linecap="round"/>');
+  if(k==='desert')s+=prop('bird',120,95,.7)+'<path d="M0 226 Q90 196 190 220 T400 206 V300 H0Z" fill="#e3bd76"/><path d="M0 242 Q200 216 400 244 V300 H0Z" fill="#f0d59a"/>'+prop('bone',372,292,.75);
   return s}
 
 function scene(b,p){let s=`<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${b.ko}">`+bg(p.bg);
@@ -336,7 +383,7 @@ function scene(b,p){let s=`<svg viewBox="0 0 400 300" preserveAspectRatio="xMidY
   if(p.fx){const [w,x=300,y=120,r=-8]=p.fx,n=w.replace(/[ !~,]/g,'').length,fs=n<=2?50:n<=4?40:30;
     s+=`<g transform="translate(${x} ${y}) rotate(${r})">${tapg('fx',`data-snd="${p.snd}" data-say="${w.replace(/~/g,'')}"`,`<text text-anchor="middle" font-family="Jua,'Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="${fs}" fill="#ff3d8b" stroke="#fff" stroke-width="8" stroke-linejoin="round" paint-order="stroke">${w}</text>`)}</g>`}
   return s+'</svg>'}
-function portrait(b,o={}){const D=ART[b.id];return `<svg viewBox="-6 -6 ${D.w+12} ${D.h+12}">${tapg('dino',`data-snd="${b.voice}" data-en="${b.en}"`,D.draw(b,o))}</svg>`}
+function portrait(b,o={}){const D=ART[b.id];return `<svg viewBox="-6 -6 ${D.w+12} ${D.h+12}">${tapg('dino',`data-act="dino" data-snd="${b.voice}" data-bit="dust"`,D.draw(b,o))}</svg>`}
 
 /* ---------- the books ---------- */
 const P=(t,fx,snd,bg,it)=>({t,fx,snd,bg,it});
@@ -347,36 +394,36 @@ const BOOKS=[
  P('“같이 놀자! 크아앙!” 티노가 큰 소리로 외쳤어요.',['크아앙!',305,125],'roar','day',[D(150,264,.95,{o:1}),['d',340,270,.36,{w:'tri',f:1}]]),
  P('친구들은 깜짝 놀라 도망갔어요.',['후다닥',255,125],'run','day',[D(105,264,.8),['d',285,262,.36,{w:'tri'}],['d',360,276,.36,{w:'ste'}]]),
  P('티노는 혼자 남았어요. 너무 심심했어요.',['훌쩍',315,150],'rain','rain',[D(180,264,.9)]),
- P('그때 어디선가 작은 소리가 들렸어요. “도와줘!”',['도와줘!',300,160],'slide','volcano',[D(120,264,.85)]),
+ P('그때 어디선가 작은 소리가 들렸어요. “도와줘!”',['도와줘!',300,160],'slide','mount',[D(120,264,.85)]),
  P('아기 트리케라톱스가 큰 바위 사이에 끼었어요.',['끙끙',205,125,-6],'pop','jungle',[['d',205,262,.38,{w:'tri'}],['rock',130,270,1.5],['rock',282,270,1.5]]),
  P('“내가 도와줄게!” 티노가 바위를 영차 밀었어요.',['영차!',325,125],'stomp','jungle',[D(115,264,.9),['rock',262,268,1.5],['d',345,268,.32,{w:'tri'}]]),
  P('바위가 데굴데굴 굴러갔어요. 아기가 쏙 나왔어요!',['데굴데굴',300,135],'run','jungle',[D(105,264,.85),['d',228,268,.38,{w:'tri',f:1}],['rock',355,276,1.1]]),
  P('“고마워, 티노!” 친구들이 모두 달려왔어요.',['고마워!',295,125],'sparkle','day',[D(115,262,.85),['d',250,268,.38,{w:'tri',f:1}],['d',340,278,.38,{w:'ste',f:1}]]),
- P('힘은 친구를 도울 때 가장 멋져요.',['최고!',305,125],'sparkle','day',[['flower',40,272,1],D(145,264,.95,{o:1}),['d',320,270,.4,{w:'tri',f:1}],['heart',262,180,.9]])]},
+ P('힘은 친구를 도울 때 가장 멋져요.',['최고!',305,125],'sparkle','sunset',[['flower',40,272,1],D(145,264,.95,{o:1}),['d',320,270,.4,{w:'tri',f:1}],['heart',262,180,.9]])]},
 {id:'tri',ko:'트리케라톱스',en:'Triceratops',title:'뿔이 세 개! 씩씩한 트리케라톱스',c:'#f08a4b',d:'#c9662c',l:'#ffe3bd',cv:'#7fd6c2',voice:'horn',pages:[
  P('트리케라톱스 토리는 겁이 많아요. 나뭇잎 소리에도 깜짝!',['깜짝!',300,140],'pop','jungle',[D(165,264,.8),['fern',335,272,1.3]]),
  P('엄마가 말했어요. “토리야, 동생 알을 잘 지켜 주렴.”',['네!',240,160,-6],'hello','day',[D(110,262,.92),['egg',240,268,1.2],['d',330,268,.55,{f:1}]]),
  P('토리는 알 옆에 꼭 붙어 있었어요.',['두근두근',295,135],'gulp','day',[D(160,264,.8),['egg',295,268,1.3]]),
- P('그런데 쿵, 쿵! 큰 발소리가 들렸어요.',['쿵! 쿵!',120,140,-8],'stomp','volcano',[D(120,266,.68),['egg',225,270,1.2]]),
- P('배고픈 티라노사우루스가 나타났어요!',['크아앙!',125,120,-8],'roar','volcano',[D(80,268,.5),['egg',155,272,1.1],['d',300,264,.9,{w:'trex',f:1,o:1}]]),
- P('토리는 다리가 덜덜 떨렸어요. 하지만 도망가지 않았어요.',['덜덜',115,150,-8],'pop','volcano',[D(100,268,.58),['egg',180,272,1.1],['d',320,264,.85,{w:'trex',f:1}]]),
- P('“내 동생이야! 안 돼!” 토리가 뿔을 번쩍 들었어요.',['안 돼!',125,125,-8],'horn','volcano',[['egg',50,272,1.1],D(160,266,.75,{o:1}),['d',335,264,.78,{w:'trex',f:1}]]),
- P('티라노사우루스는 깜짝 놀라 돌아갔어요.',['후다닥',280,140],'run','day',[['egg',50,272,1.1],D(155,266,.7),['d',345,256,.48,{w:'trex'}]]),
+ P('그런데 쿵, 쿵! 큰 발소리가 들렸어요.',['쿵! 쿵!',120,140,-8],'stomp','sunset',[D(120,266,.68),['egg',225,270,1.2]]),
+ P('배고픈 티라노사우루스가 나타났어요!',['크아앙!',125,120,-8],'roar','sunset',[D(80,268,.5),['egg',155,272,1.1],['d',300,264,.9,{w:'trex',f:1,o:1}]]),
+ P('토리는 다리가 덜덜 떨렸어요. 하지만 도망가지 않았어요.',['덜덜',115,150,-8],'pop','sunset',[D(100,268,.58),['egg',180,272,1.1],['d',320,264,.85,{w:'trex',f:1}]]),
+ P('“내 동생이야! 안 돼!” 토리가 뿔을 번쩍 들었어요.',['안 돼!',125,125,-8],'horn','sunset',[['egg',50,272,1.1],D(160,266,.75,{o:1}),['d',335,264,.78,{w:'trex',f:1}]]),
+ P('티라노사우루스는 깜짝 놀라 돌아갔어요.',['후다닥',280,140],'run','sunset',[['egg',50,272,1.1],D(155,266,.7),['d',345,256,.48,{w:'trex'}]]),
  P('빠지직! 알에서 동생이 나왔어요.',['빠지직',295,145],'crack','day',[D(130,264,.8),['d',295,252,.3,{f:1}],['shell',295,264,1.4]]),
- P('무서워도 용기를 내면 소중한 것을 지킬 수 있어요.',['용감해!',300,130],'sparkle','day',[D(145,264,.9),['d',300,270,.36,{f:1}],['heart',250,190,.9],['flower',368,282,1]])]},
+ P('무서워도 용기를 내면 소중한 것을 지킬 수 있어요.',['용감해!',300,130],'sparkle','rainbow',[D(145,264,.9),['d',300,270,.36,{f:1}],['heart',250,190,.9],['flower',368,282,1]])]},
 {id:'bra',ko:'브라키오사우루스',en:'Brachiosaurus',title:'목이 길쭉길쭉 브라키오사우루스',c:'#5b8fe0',d:'#3c6cbd',l:'#d4e3ff',cv:'#ffc2d1',voice:'horn',pages:[
  P('브라키오사우루스 브라는 목이 아주 길어요.',['길쭉길쭉',100,185,-8],'slide','day',[D(205,278,.92)]),
  P('친구들과 숨바꼭질을 해요. “꼭꼭 숨어라!”',['꼭꼭',95,170,-10],'count','jungle',[D(225,274,.8),['rock',240,278,2.3],['d',75,276,.34,{w:'ste'}]]),
  P('하지만 긴 목 때문에 금방 들켰어요. “브라 찾았다!”',['찾았다!',100,165,-8],'hello','jungle',[D(235,274,.8),['rock',250,278,2.3],['d',90,274,.38,{w:'ste'}]]),
  P('“내 목은 왜 이렇게 길까?” 브라는 속상했어요.',['힝',300,180],'pop','lake',[D(140,262,.78)]),
- P('어느 날 친구들은 배가 고팠어요. 땅에는 풀이 하나도 없었어요.',['꼬르륵',150,140,-6],'gulp','volcano',[['d',95,266,.42,{w:'ste'}],['d',215,272,.4,{w:'tri',f:1}]]),
- P('맛있는 잎은 높은 나무 꼭대기에만 있었어요.',['너무 높아!',115,165,-8],'slide','day',[['tree',300,268,1.7],['d',175,272,.4,{w:'tri'}],['d',75,270,.36,{w:'ste'}]]),
+ P('어느 날 친구들은 배가 고팠어요. 땅에는 풀이 하나도 없었어요.',['꼬르륵',150,140,-6],'gulp','desert',[['d',95,266,.42,{w:'ste'}],['d',215,272,.4,{w:'tri',f:1}]]),
+ P('맛있는 잎은 높은 나무 꼭대기에만 있었어요.',['너무 높아!',115,165,-8],'slide','desert',[['tree',300,268,1.7],['d',175,272,.4,{w:'tri'}],['d',75,270,.36,{w:'ste'}]]),
  P('“내가 따 줄게!” 브라가 목을 쭈욱 뻗었어요.',['쭈욱',85,180,-10],'slide','day',[D(170,278,.9,{o:1}),['tree',345,270,1.6]]),
  P('잎이 후두둑 떨어졌어요. 모두 냠냠 맛있게 먹었어요.',['냠냠',300,150],'munch','day',[D(140,274,.8),['fern',262,280,1],['d',330,274,.4,{w:'tri',f:1,o:1}]]),
  P('“브라야, 네 긴 목이 최고야!” 친구들이 말했어요.',['최고!',305,160],'sparkle','day',[D(145,274,.82),['d',285,274,.4,{w:'tri',f:1}],['d',362,284,.34,{w:'ste',f:1}]]),
  P('남과 다른 점이 나의 가장 멋진 점이에요.',['반짝!',90,180,-10],'sparkle','rainbow',[D(205,276,.85),['heart',320,215,.9]])]},
 {id:'ste',ko:'스테고사우루스',en:'Stegosaurus',title:'등이 뾰족뾰족 스테고사우루스',c:'#9b72d6',d:'#7850b3',l:'#e6d8fc',p:'#ff9f43',cv:'#c5e86c',voice:'grunt',pages:[
- P('스테고사우루스 스테는 걸음이 느려요.',['느릿느릿',300,125],'stomp','day',[D(180,264,.92),['flower',360,276,1]]),
+ P('스테고사우루스 스테는 걸음이 느려요.',['느릿느릿',300,125],'stomp','mount',[D(180,264,.92),['flower',360,276,1]]),
  P('“스테야, 빨리 와! 언덕까지 달리기하자!”',['빨리빨리',130,125,-8],'run','day',[D(115,270,.6),['d',262,264,.38,{w:'tri'}],['d',348,274,.38,{w:'ank'}]]),
  P('친구들은 벌써 저 멀리 가 버렸어요.',['기다려~',215,145,-6],'pop','day',[D(125,268,.8),['d',322,232,.16,{w:'tri'}],['d',368,234,.16,{w:'ank'}]]),
  P('스테는 천천히 걸으며 꽃도 보고 나비도 만났어요.',['팔랑팔랑',300,125],'sparkle','day',[['flower',38,276,1],D(170,264,.88),['fly',238,118,1.2],['flower',330,274,1],['flower',366,284,.9]]),
@@ -385,16 +432,16 @@ const BOOKS=[
  P('“얘들아, 내 등 밑으로 들어와!” 스테가 말했어요.',['쏙!',325,165],'hello','rain',[D(155,264,1,{o:1}),['d',335,274,.32,{w:'tri',f:1}]]),
  P('스테의 등은 커다란 우산이 되었어요.',['톡톡톡',315,130],'rain','rain',[D(195,258,1.25),['d',140,284,.3,{w:'tri'}],['d',255,286,.3,{w:'ank'}]]),
  P('비가 그치고 무지개가 떴어요. “스테야, 고마워!”',['고마워!',95,125,-10],'sparkle','rainbow',[D(200,268,.8),['d',65,278,.32,{w:'tri'}],['d',340,280,.32,{w:'ank',f:1}]]),
- P('천천히 가도 괜찮아요. 함께 가면 더 즐거우니까요.',['다 함께!',215,125,-6],'hello','day',[['d',62,270,.36,{w:'tri'}],D(200,264,.72),['d',340,272,.38,{w:'ank'}]])]},
+ P('천천히 가도 괜찮아요. 함께 가면 더 즐거우니까요.',['다 함께!',215,125,-6],'hello','sunset',[['d',62,270,.36,{w:'tri'}],D(200,264,.72),['d',340,272,.38,{w:'ank'}]])]},
 {id:'ank',ko:'안킬로사우루스',en:'Ankylosaurus',title:'갑옷이 단단한 안킬로사우루스',c:'#d9a53c',d:'#a97a22',l:'#f6e3ad',p:'#9b6a2a',cv:'#a7d8ff',voice:'grunt',pages:[
- P('안킬로사우루스 안키의 꼬리에는 큰 망치가 있어요.',['붕붕',85,130,-10],'swish','day',[D(215,264,1)]),
+ P('안킬로사우루스 안키의 꼬리에는 큰 망치가 있어요.',['붕붕',85,130,-10],'swish','beach',[D(215,264,1)]),
  P('친구 스테가 돌탑을 쌓고 있었어요. “하나, 둘, 셋!”',['차곡차곡',115,135,-8],'count','day',[['d',130,268,.5,{w:'ste'}],['rock',290,272,.9],['rock',290,241,.68],['rock',290,218,.48]]),
  P('“나도 같이 놀래!” 안키가 신나서 꼬리를 흔들었어요.',['신난다!',215,125,-6],'swish','day',[['rock',55,272,.9],['rock',55,241,.68],['rock',55,218,.48],D(215,264,.88),['d',358,274,.3,{w:'ste',f:1}]]),
  P('그만 꼬리가 돌탑에 쾅! 부딪혔어요.',['쾅!',100,140,-10],'clank','day',[['rock',62,272,.9],['rock',48,241,.68],['rock',78,220,.48],D(220,264,.9)]),
  P('돌탑이 와르르 무너졌어요. 스테가 엉엉 울었어요.',['엉엉',300,135],'gulp','day',[['rock',50,274,.9],['rock',120,280,.68],['rock',172,270,.48],['d',300,270,.55,{w:'ste',f:1,o:1}]]),
  P('안키는 깜짝 놀라 바위인 척 숨었어요.',['꼭꼭',300,115],'pop','day',[['rock',70,266,1.3],D(215,266,.85,{z:1}),['rock',355,274,1]]),
  P('하지만 마음이 콩닥콩닥 불편했어요.',['콩닥콩닥',300,150],'gulp','night',[D(190,266,.95)]),
- P('안키는 용기를 내어 말했어요. “스테야, 미안해.”',['미안해',215,130,-6],'hello','day',[D(120,264,.75),['d',315,268,.5,{w:'ste',f:1}]]),
+ P('안키는 용기를 내어 말했어요. “스테야, 미안해.”',['미안해',215,130,-6],'hello','desert',[D(120,264,.75),['d',315,268,.5,{w:'ste',f:1}]]),
  P('“괜찮아! 우리 같이 다시 쌓자.” 둘은 더 높은 탑을 쌓았어요.',['영차영차',100,135,-8],'count','day',[['d',80,272,.4,{w:'ste'}],['rock',212,274,1],['rock',212,240,.78],['rock',212,213,.58],['rock',212,193,.42],D(330,270,.52,{f:1})]),
  P('잘못했을 때는 “미안해” 하고 말해요. 그러면 다시 친구가 돼요.',['사이좋게',205,120,-6],'sparkle','rainbow',[D(120,268,.7),['d',305,270,.5,{w:'ste',f:1}],['heart',218,205,.9]])]},
 {id:'pte',ko:'프테라노돈',en:'Pteranodon',title:'하늘을 훨훨 나는 프테라노돈',c:'#ee6f8e',d:'#c94a6e',l:'#ffdbe3',p:'#ffc93c',cv:'#c3b5ff',voice:'squawk',pages:[
@@ -404,42 +451,42 @@ const BOOKS=[
  P('“하나, 둘, 셋!” 프테가 날개를 활짝 폈어요.',['폴짝!',310,140],'count','sky',[['rock',85,300,2.6],D(220,205,.58,{o:1})]),
  P('하지만 풍덩! 바다에 빠지고 말았어요.',['풍덩!',215,165,-6],'splash','sky',[['rock',55,300,2.4],D(235,296,.52)]),
  P('프테는 다시 올라갔어요. 또 풍덩! 또 풍덩!',['또 풍덩!',215,160,-6],'splash','sky',[['rock',55,300,2.4],D(245,298,.52,{f:1})]),
- P('“난 못 해.” 프테는 눈물이 났어요.',['훌쩍',295,185],'rain','sky',[['rock',140,300,2.6],D(158,224,.5,{z:1})]),
- P('“한 번만 더 해 보자!” 프테는 힘껏 날개를 저었어요.',['파닥파닥',290,215],'flap','sky',[['rock',75,300,2.6],D(215,180,.6,{o:1})]),
- P('우와! 프테가 바람을 타고 날았어요!',['슈웅~',110,235,-10],'swish','sky',[D(250,190,.78,{o:1})]),
- P('넘어져도 다시 하면 할 수 있어요. 프테는 이제 하늘을 훨훨 날아요.',['해냈다!',115,250,-8],'sparkle','sky',[D(125,200,.5,{o:1}),['d',275,185,.75,{f:1}]])]},
+ P('“난 못 해.” 프테는 눈물이 났어요.',['훌쩍',295,185],'rain','dusk',[['rock',140,300,2.6],D(158,224,.5,{z:1})]),
+ P('“한 번만 더 해 보자!” 프테는 힘껏 날개를 저었어요.',['파닥파닥',290,215],'flap','dusk',[['rock',75,300,2.6],D(215,180,.6,{o:1})]),
+ P('우와! 프테가 바람을 타고 날았어요!',['슈웅~',110,235,-10],'swish','dusk',[D(250,190,.78,{o:1})]),
+ P('넘어져도 다시 하면 할 수 있어요. 프테는 이제 하늘을 훨훨 날아요.',['해냈다!',115,250,-8],'sparkle','dusk',[D(125,200,.5,{o:1}),['d',275,185,.75,{f:1}]])]},
 {id:'spi',ko:'스피노사우루스',en:'Spinosaurus',title:'물고기 잡기 대장 스피노사우루스',c:'#e2574c',d:'#b53c33',l:'#ffd9c7',p:'#ffb238',cv:'#a9ecd9',voice:'roar',pages:[
- P('스피노사우루스 스피노는 물고기 잡기 대장이에요.',['첨벙!',305,175],'splash','lake',[D(140,258,.82),['fish',325,268,.9]]),
- P('오늘은 물고기를 아주 많이 잡았어요. “우와, 신난다!”',['하나 둘 셋',115,140,-8],'count','lake',[D(135,258,.8),['fish',262,250,.8],['fish',300,244,.8],['fish',282,230,.8]]),
- P('친구들이 다가왔어요. “스피노야, 하나만 나눠 줄래?”',['꼬르륵',225,125,-6],'gulp','day',[D(120,262,.8),['fish',238,270,.7],['d',322,272,.38,{w:'tri',f:1}],['d',345,185,.34,{w:'pte',f:1}]]),
- P('“싫어! 전부 다 내 거야!” 스피노가 소리쳤어요.',['싫어!',310,135],'roar','day',[['fish',55,272,.7],['fish',35,258,.7],D(165,262,.92,{o:1})]),
- P('친구들은 힘없이 돌아갔어요.',['터벅터벅',215,125,-6],'stomp','day',[D(90,264,.6),['d',262,270,.38,{w:'tri'}],['d',340,200,.34,{w:'pte'}]]),
+ P('스피노사우루스 스피노는 물고기 잡기 대장이에요.',['첨벙!',305,175],'splash','falls',[D(140,258,.82),['fish',325,268,.9]]),
+ P('오늘은 물고기를 아주 많이 잡았어요. “우와, 신난다!”',['하나 둘 셋',115,140,-8],'count','falls',[D(135,258,.8),['fish',262,250,.8],['fish',300,244,.8],['fish',282,230,.8]]),
+ P('친구들이 다가왔어요. “스피노야, 하나만 나눠 줄래?”',['꼬르륵',225,125,-6],'gulp','beach',[D(120,262,.8),['fish',238,270,.7],['d',322,272,.38,{w:'tri',f:1}],['d',345,185,.34,{w:'pte',f:1}]]),
+ P('“싫어! 전부 다 내 거야!” 스피노가 소리쳤어요.',['싫어!',310,135],'roar','beach',[['fish',55,272,.7],['fish',35,258,.7],D(165,262,.92,{o:1})]),
+ P('친구들은 힘없이 돌아갔어요.',['터벅터벅',215,125,-6],'stomp','beach',[D(90,264,.6),['d',262,270,.38,{w:'tri'}],['d',340,200,.34,{w:'pte'}]]),
  P('스피노는 혼자 냠냠 먹었어요. 그런데 하나도 맛이 없었어요.',['냠냠…',305,150],'munch','lake',[D(140,258,.82,{o:1}),['fish',268,252,.8]]),
  P('스피노는 생각했어요. “혼자 먹으니까 심심해.”',['심심해',310,165],'pop','night',[D(205,266,.9)]),
  P('스피노는 물고기를 들고 달려갔어요. “얘들아, 같이 먹자!”',['다다다다',105,140,-8],'run','day',[D(205,262,.88,{o:1}),['fish',338,180,.7]]),
- P('친구들도 맛있는 열매를 가져왔어요. 모두 함께 냠냠!',['냠냠',215,125,-6],'munch','day',[D(100,262,.7,{o:1}),['fish',205,272,.7],['berry',240,274,1],['berry',260,280,1],['d',325,272,.38,{w:'tri',f:1,o:1}],['d',350,185,.32,{w:'pte',f:1}]]),
+ P('친구들도 맛있는 열매를 가져왔어요. 모두 함께 냠냠!',['냠냠',215,125,-6],'munch','beach',[D(100,262,.7,{o:1}),['fish',205,272,.7],['berry',240,274,1],['berry',260,280,1],['d',325,272,.38,{w:'tri',f:1,o:1}],['d',350,185,.32,{w:'pte',f:1}]]),
  P('나눠 먹으면 더 맛있어요. 마음도 배도 든든해요.',['꿀맛!',95,125,-10],'sparkle','rainbow',[D(150,266,.78),['d',315,274,.38,{w:'tri',f:1}],['heart',250,205,.9]])]},
 {id:'pac',ko:'파키케팔로사우루스',en:'Pachycephalosaurus',title:'머리가 단단한 파키케팔로사우루스',c:'#6a6fd6',d:'#494eae',l:'#dedfff',p:'#ffc93c',cv:'#ffe08a',voice:'grunt',pages:[
  P('파키케팔로사우루스 파키는 머리가 아주 단단해요.',['단단!',305,135],'clank','day',[D(175,264,.95),['fern',40,274]]),
- P('파키는 화가 나면 머리로 쿵! 박치기를 했어요.',['쿵!',110,150,-10],'stomp','volcano',[D(150,264,.9),['rock',268,270,1.3]]),
+ P('파키는 화가 나면 머리로 쿵! 박치기를 했어요.',['쿵!',110,150,-10],'stomp','mount',[D(150,264,.9),['rock',268,270,1.3]]),
  P('어느 날 친구 토리가 파키의 열매를 가져갔어요.',['내 거야!',215,125,-6],'pop','day',[D(115,264,.8),['d',295,270,.42,{w:'tri'}],['berry',368,264,1.2]]),
  P('파키는 화가 나서 쿵! 박치기를 했어요. 토리가 엉엉 울었어요.',['엉엉',315,150],'gulp','day',[D(150,264,.85,{o:1}),['berry',225,276,1.1],['d',305,272,.42,{w:'tri',o:1}]]),
  P('친구들은 무서워서 파키와 놀지 않았어요.',['무서워',255,150],'run','day',[D(100,264,.8),['d',300,236,.2,{w:'tri'}],['d',355,240,.2,{w:'ank'}]]),
  P('엄마가 말했어요. “화가 날 땐 숨을 크게 쉬고 말로 해 보렴.”',['후우~',305,150],'swish','jungle',[D(130,264,1),['d',295,268,.55,{f:1}]]),
- P('다음 날, 안키가 파키의 꼬리를 꾹 밟았어요. “아야!”',['아야!',300,130],'pop','day',[D(235,264,.85,{o:1}),['d',95,272,.42,{w:'ank'}]]),
- P('파키는 숨을 후우 쉬고 말했어요. “아파. 조심해 줘.”',['후우~',110,140,-8],'swish','day',[D(235,264,.85),['d',95,272,.42,{w:'ank'}]]),
+ P('다음 날, 안키가 파키의 꼬리를 꾹 밟았어요. “아야!”',['아야!',300,130],'pop','desert',[D(235,264,.85,{o:1}),['d',95,272,.42,{w:'ank'}]]),
+ P('파키는 숨을 후우 쉬고 말했어요. “아파. 조심해 줘.”',['후우~',110,140,-8],'swish','desert',[D(235,264,.85),['d',95,272,.42,{w:'ank'}]]),
  P('“미안해, 파키야!” 둘은 다시 사이좋게 놀았어요.',['괜찮아',215,125,-6],'hello','day',[D(130,264,.85),['d',305,272,.45,{w:'ank',f:1}],['heart',232,200,.9]]),
  P('화가 날 땐 말로 해요. 단단한 머리는 열매를 딸 때만 쿵!',['우수수',105,150,-8],'stomp','day',[['d',50,276,.3,{w:'tri'}],D(165,264,.85),['tree',292,266,1.2],['berry',262,185,1],['berry',325,205,1],['berry',350,252,1],['berry',322,278,1]])]},
 {id:'par',ko:'파라사우롤로푸스',en:'Parasaurolophus',title:'뿌우뿌우 나팔 부는 파라사우롤로푸스',c:'#8cc63f',d:'#699c25',l:'#edf8cc',p:'#ff7a59',cv:'#ffb9a3',voice:'horn',pages:[
  P('파라사우롤로푸스 파라는 머리에 긴 나팔이 있어요.',['뿌우~',305,135],'horn','day',[D(170,264,.95),['flower',358,278,1]]),
  P('위험할 때 뿌우 하고 친구들에게 알려 줘요.',['뿌우!',230,120,-6],'horn','jungle',[D(105,264,.82,{o:1}),['d',270,270,.36,{w:'tri',f:1}],['d',350,278,.36,{w:'ste',f:1}]]),
- P('어느 날 파라는 심심했어요. “장난을 쳐 볼까?”',['히히',305,140],'pop','day',[D(175,264,.95)]),
+ P('어느 날 파라는 심심했어요. “장난을 쳐 볼까?”',['히히',305,140],'pop','falls',[D(175,264,.95)]),
  P('“뿌우! 무서운 공룡이 온다!” 친구들이 후다닥 숨었어요.',['후다닥',295,130],'run','jungle',[D(95,264,.75,{o:1}),['d',250,264,.34,{w:'tri'}],['rock',290,274,1.4],['d',340,268,.32,{w:'ste'}],['rock',375,280,1.2]]),
  P('“히히, 거짓말이야!” 파라는 깔깔 웃었어요. 친구들은 화가 났어요.',['깔깔',240,120,-6],'hello','day',[D(125,264,.85,{o:1}),['d',285,270,.38,{w:'tri',f:1}],['d',358,280,.34,{w:'ste',f:1}]]),
  P('그런데 진짜로 화산이 우르릉 쿵쾅 흔들렸어요.',['우르릉!',110,130,-8],'roar','volcano',[D(110,266,.68)]),
  P('“뿌우! 화산이야! 도망가!” 하지만 아무도 믿지 않았어요.',['뿌우!',215,110,-6],'horn','volcano',[D(90,266,.7,{o:1}),['d',235,274,.36,{w:'tri',z:1}],['d',170,290,.3,{w:'ste',z:1}]]),
  P('파라는 친구들에게 달려갔어요. “이번엔 진짜야! 거짓말해서 미안해!”',['진짜야!',225,105,-6],'run','volcano',[D(105,264,.72,{o:1}),['d',240,274,.38,{w:'tri',f:1}],['d',185,290,.3,{w:'ste',f:1}]]),
- P('모두 함께 달려서 멀리멀리 피했어요.',['다다다다',215,125,-6],'run','day',[['d',62,272,.34,{w:'ste'}],['d',160,268,.38,{w:'tri'}],D(295,264,.75)]),
+ P('모두 함께 달려서 멀리멀리 피했어요.',['다다다다',215,125,-6],'run','mount',[['d',62,272,.34,{w:'ste'}],['d',160,268,.38,{w:'tri'}],D(295,264,.75)]),
  P('거짓말을 하면 아무도 믿지 않아요. 파라는 이제 참말만 해요.',['약속!',95,125,-10],'sparkle','rainbow',[D(140,266,.78),['d',290,274,.38,{w:'tri',f:1}],['d',358,282,.32,{w:'ste',f:1}],['heart',228,208,.9]])]}
 ];
 </script>
@@ -477,6 +524,14 @@ const SND={
  gulp(){[0,.25,.5].forEach(t=>tone(320,150,t,.13,'sine',.4))},
  count(){[523,659,784].forEach((f,i)=>tone(f,f,i*.22,.18,'triangle',.3))},
  slide(){tone(200,900,0,.6,'sine',.25)},
+ rustle(){[0,.12,.24].forEach(t=>noise(3000,5200,t,.1,.3,'highpass'))},
+ whoosh(){noise(300,1500,0,.45,.4,'lowpass')},
+ heartbeat(){[0,.18,.6,.78].forEach(t=>tone(72,44,t,.13,'sine',.9))},
+ thunder(){noise(900,80,0,1.2,.7,'lowpass');tone(60,34,.05,1,'sine',.5)},
+ rumble(){noise(220,60,0,1,.7,'lowpass');tone(55,40,0,1,'sawtooth',.22);[.3,.5,.7].forEach(t=>noise(1200,400,t,.15,.3))},
+ chime(){[784,988,1175,1568].forEach((f,i)=>tone(f,f,i*.12,.5,'sine',.18))},
+ ding(){tone(1760,1760,0,.4,'sine',.2);tone(2637,2637,.05,.3,'sine',.1)},
+ waterfall(){noise(1500,2600,0,1.1,.4);noise(500,300,0,1.1,.35,'lowpass')},
  pop(){tone(420,860,0,.09,'sine',.35)},
  flip(){noise(1400,4200,0,.2,.14)}
 };
@@ -559,6 +614,29 @@ setAuto(auto);
 $('voiceSel').onchange=e=>{koPick=e.target.value;try{localStorage.setItem('dino-voice',koPick)}catch(x){}speak('안녕! 우리 같이 공룡 책 읽자.','ko-KR')};
 $('voiceTry').onclick=()=>speak('안녕! 우리 같이 공룡 책 읽자.','ko-KR');
 
+/* pictures: action + sound effect + a burst of little bits (no speech) */
+const NS='http://www.w3.org/2000/svg',DOT='M-5 0 a5 5 0 1 0 10 0 a5 5 0 1 0 -10 0Z',TEAR='M0 -7 Q6 3 0 6 Q-6 3 0 -7Z',LEAF='M0 -7 Q7 0 0 7 Q-7 0 0 -7Z';
+/* [colour, shape, 0 all around | 1 falling | 2 shooting up | 3 low and sideways] */
+const BIT={star:['#ffd23f','M0 -7 L2 -2 L7 -2 L3 1.5 L4.5 7 L0 3.5 L-4.5 7 L-3 1.5 L-7 -2 L-2 -2Z',0],leaf:['#3fa55a',LEAF,1],petal:['#ff7eb6',LEAF,1],drop:['#5cc0f2',TEAR,2],rain:['#5cc0f2',TEAR,1],
+  dust:['#e9e0cf',DOT,3],lava:['#ff5a36',DOT,2],mud:['#8a5a3c',DOT,2],crumb:['#c8553d',DOT,0],heart:['#ff3d8b','M0 6 C-14 -4 -7 -14 0 -7 C7 -14 14 -4 0 6Z',2]};
+function burst(svg,x,y,kind){const [c,d,m]=BIT[kind]||BIT.star,s=svg.viewBox.baseVal.width/400,R=Math.random;
+  for(let i=0;i<7;i++){const a=R()*6.28,r=28+R()*30;let dx=Math.cos(a)*r,dy=Math.sin(a)*r;
+    if(m===1){dx=(R()-.5)*50;dy=30+R()*50}if(m===2){dx=(R()-.5)*70;dy=-(35+R()*55)}if(m===3){dx=(R()-.5)*110;dy=-R()*18}
+    const g=document.createElementNS(NS,'g'),p=document.createElementNS(NS,'path');
+    g.setAttribute('transform',`translate(${x} ${y}) scale(${s})`);g.setAttribute('pointer-events','none');
+    p.setAttribute('d',d);p.setAttribute('fill',c);p.setAttribute('class','bit');p.style.setProperty('--dx',dx+'px');p.style.setProperty('--dy',dy+'px');p.style.animationDelay=i*25+'ms';
+    g.appendChild(p);svg.appendChild(g);p.addEventListener('animationend',()=>g.remove());setTimeout(()=>g.remove(),1500)}}
+function shake(svg){if(!svg)return;svg.classList.remove('shake');void svg.getBoundingClientRect();svg.classList.add('shake')}
+const DINO_ACT=['jump','wiggle','stomp','flip'];
+function picTap(g,kind,e){const svg=g.closest('svg');let snd=g.getAttribute('data-snd'),bit=g.getAttribute('data-bit'),a=kind;
+  if(kind==='dino'){const n=+g.getAttribute('data-n')||0,fly=snd==='squawk';g.setAttribute('data-n',n+1);a=DINO_ACT[n%4];
+    if(a==='stomp'){snd=fly?'flap':'stomp';if(!fly)shake(svg)}else if(a==='flip'){snd='slide';bit='star'}else if(a==='wiggle'){snd=fly?'flap':'hello';bit='star'}
+    if(snd==='roar')shake(svg)}
+  if(kind==='erupt'||snd==='thunder')shake(svg);
+  [...g.classList].forEach(c=>{if(c.indexOf('a-')===0)g.classList.remove(c)});void g.getBoundingClientRect();g.classList.add('a-'+a);
+  play(snd);
+  try{const q=svg.createSVGPoint();q.x=e.clientX;q.y=e.clientY;const z=q.matrixTransform(svg.getScreenCTM().inverse());burst(svg,z.x,z.y,bit)}catch(x){}}
+
 /* touch */
 let swiped=false,sx=0,sy=0;
 bookEl.addEventListener('pointerdown',e=>{sx=e.clientX;sy=e.clientY;swiped=false});
@@ -569,10 +647,11 @@ document.addEventListener('click',e=>{if(swiped){swiped=false;return}
   if(t.closest('[data-again]'))return show(0,-1);
   if(t.closest('[data-home]'))return goHome();
   const g=t.closest('[data-tap]');if(!g)return;
+  const kind=g.getAttribute('data-act');if(kind)return picTap(g,kind,e);
   const snd=g.getAttribute('data-snd'),en=g.getAttribute('data-en'),say=g.getAttribute('data-say');
   g.classList.remove('hit');void g.getBoundingClientRect();g.classList.add('hit');
   play(snd||'pop');
-  if(snd==='stomp'||snd==='roar'){const sc=g.closest('svg');if(sc){sc.classList.remove('shake');void sc.getBoundingClientRect();sc.classList.add('shake')}}
+  if(snd==='stomp'||snd==='roar')shake(g.closest('svg'));
   if(cur&&REC[recKey()]&&g.matches('.txt span,.cover h2,.big'))return readPage(snd?450:0);
   const mark=g.matches('span,h1,h2,.say')?g:null;
   if(en)speak(en,'en-US',null,snd?650:150);else if(say)speak(say,'ko-KR',mark,snd?450:0)});
