@@ -610,8 +610,8 @@ function env(v,s,d,g,att){v.gain.setValueAtTime(.0001,s);v.gain.exponentialRampT
 function out(n,wet){n.connect(OUT);if(wet)n.connect(REV)}
 function tone(f,f2,t,d,type,g,wet){const a=ac(),o=a.createOscillator(),v=a.createGain(),s=a.currentTime+t;o.type=type||'sine';
   o.frequency.setValueAtTime(f,s);if(f2)o.frequency.exponentialRampToValueAtTime(f2,s+d);env(v,s,d,g||.3);o.connect(v);out(v,wet);o.start(s);o.stop(s+d+.05)}
-function noise(f,f2,t,d,g,type,wet){const a=ac(),n=a.createBufferSource(),q=a.createBiquadFilter(),v=a.createGain(),s=a.currentTime+t;n.buffer=NB;n.loop=true;q.type=type||'bandpass';
-  q.frequency.setValueAtTime(f,s);if(f2)q.frequency.exponentialRampToValueAtTime(f2,s+d);env(v,s,d,g||.3);n.connect(q);q.connect(v);out(v,wet);n.start(s,Math.random());n.stop(s+d+.05)}
+function noise(f,f2,t,d,g,type,wet,att){const a=ac(),n=a.createBufferSource(),q=a.createBiquadFilter(),v=a.createGain(),s=a.currentTime+t;n.buffer=NB;n.loop=true;q.type=type||'bandpass';
+  q.frequency.setValueAtTime(f,s);if(f2)q.frequency.exponentialRampToValueAtTime(f2,s+d);env(v,s,d,g||.3,att);n.connect(q);q.connect(v);out(v,wet);n.start(s,Math.random());n.stop(s+d+.05)}
 /* an animal voice: a buzzy throat through two moving mouth-shaped filters, with a growly flutter and a pitch that rises and falls */
 function voice(o){const a=ac(),pt=o.pt||1,d=o.d||.8,s=a.currentTime+(o.t||0),g=o.g||.6,bend=o.bend||[1,1.2,.75],f=(o.f||100)*pt*R(.94,1.06),src=a.createGain(),amp=a.createGain();
   [1,1.007,.5].forEach((m,i)=>{const w=a.createOscillator(),wg=a.createGain();w.type=i===2?'square':(o.type||'sawtooth');
@@ -704,7 +704,7 @@ const SND={
  squelch(){noise(300,900,0,.18,1.4,'lowpass');tone(120,60,0,.2,'sine',.9);noise(500,200,.2,.25,1.2,'lowpass');tone(90,180,.2,.2,'sine',.6)},
  giggle(pt){const f=R(330,420)*(pt||1);[0,1,2,3,4].forEach(i=>V({f:f*(1-i*.06),bend:[.9,1.15,1],d:.1,t:i*.12,g:.5,f1:[900,800],f2:[2000,1800],breath:.05}))},
  tada(){whistle(0,450,1250,.4);bell(N(4),.45,.2);bell(N(7),.55,.22,.9)},
- flip(){noise(1400,4200,0,.2,.6)}
+ flip(){noise(1000,520,0,.42,.5,'bandpass',0,.15);noise(360,190,.27,.17,.3,'lowpass',0,.04)},   /* a soft paper page: a slow, low hush that falls in pitch, then the page settling */
 };
 function play(n,pt){try{(SND[n]||SND.pop)(pt)}catch(e){}}
 
